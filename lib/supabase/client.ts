@@ -1,13 +1,18 @@
 /**
  * Cliente Supabase para uso no NAVEGADOR (client components).
  *
- * Usa a URL pública e a chave "anon" do Supabase — ambas seguras para
- * expor no frontend, pois o acesso aos dados é controlado pelas regras
- * de Row Level Security (RLS) configuradas no banco.
+ * ATUALIZADO NESTA FASE: antes usava `createClient` do pacote
+ * @supabase/supabase-js puro (sessão guardada em localStorage). Agora
+ * usamos `createBrowserClient` do pacote @supabase/ssr, que guarda a
+ * sessão de login em COOKIES em vez de localStorage — é isso que permite
+ * o servidor (Server Components, Route Handlers, proxy.ts) também saber
+ * quem está logado, o que precisávamos para a tela de perguntas.
  *
- * Nenhuma lógica de negócio aqui ainda — apenas a criação do cliente.
+ * Continua usando a URL pública e a chave "anon" do Supabase — ambas
+ * seguras para expor no frontend, pois o acesso aos dados é controlado
+ * pelas regras de Row Level Security (RLS) configuradas no banco.
  */
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -19,4 +24,4 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
-export const supabaseBrowserClient = createClient(supabaseUrl, supabaseAnonKey);
+export const supabaseBrowserClient = createBrowserClient(supabaseUrl, supabaseAnonKey);

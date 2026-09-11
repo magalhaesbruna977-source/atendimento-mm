@@ -1,28 +1,52 @@
 /**
- * Cliente Supabase para uso no SERVIDOR (Route Handlers em app/api/**).
+ * Cliente Supabase para uso no SERVIDOR dentro de Server Components e
+ * Route Handlers (app/**), ligado à SESSÃO DE LOGIN do agente que fez a
+ * requisição — ele lê o cookie de sessão, então as consultas respeitam
+ * as regras de Row Level Security (RLS) como se fossem feitas pelo
+ * próprio agente logado (não como admin).
  *
- * Usa a "service role key", que tem acesso total ao banco e IGNORA as
- * regras de Row Level Security (RLS). Por isso:
- *   - NUNCA importe este arquivo em código que roda no navegador;
- *   - a variável SUPABASE_SERVICE_ROLE_KEY não tem o prefixo NEXT_PUBLIC_
- *     justamente para o Next.js não incluí-la no código enviado ao cliente.
+ * MUDOU NESTA FASE: na Fase 1, este arquivo exportava um cliente pronto
+ * (`supabaseServerClient`) usando a service role key (ignora RLS). Agora
+ * ele exporta uma FUNÇÃO assíncrona que cria um cliente novo a cada
+ * chamada, porque precisa ler os cookies da requisição atual — e no
+ * Next.js (nesta versão) a função `cookies()` é assíncrona. O cliente
+ * "admin" antigo continua existindo, só que mudou de arquivo — veja
+ * lib/supabase/admin.ts.
  *
- * Nenhuma lógica de negócio aqui ainda — apenas a criação do cliente.
+ * Use sempre: `const supabase = await createSupabaseServerClient();`
  */
-import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+export async function createSupabaseServerClient() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseServiceRoleKey) {
-  throw new Error(
-    "Faltam variáveis de ambiente do Supabase (NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY). " +
-      "Copie .env.local.example para .env.local e preencha os valores.",
-  );
+  if (!supabaseUrl || !supabaseAnonKey) {
+    throw new Error(
+      "Faltam variáveis de ambiente do Supabase (NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY). " +
+        "Copie .env.local.example para .env.local e preencha os valores.",
+    );
+  }
+
+  const cookieStore = await cookies();
+
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) =>
+            cookieStore.set(name, value, options),
+          );
+        } catch {
+          // Chamado de dentro de um Server Component, que não pode escrever
+          // cookies diretamente — sem problema, quem cuida de renovar a
+          // sessão é o proxy.ts (ver lib/supabase/middleware.ts).
+        }
+      },
+    },
+  });
 }
-
-export const supabaseServerClient = createClient(supabaseUrl, supabaseServiceRoleKey, {
-  auth: {
-    persistSession: false,
-  },
-});

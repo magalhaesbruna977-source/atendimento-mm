@@ -4,6 +4,11 @@
  * Usamos chamadas HTTP diretas (fetch) em vez do pacote oficial "voyageai"
  * do npm para manter a dependência mínima e o comportamento bem visível —
  * é só uma chamada POST simples.
+ *
+ * Mora em lib/rag/ (em vez de dentro de scripts/ingest/) porque é usado
+ * tanto pelo script de ingestão (scripts/ingest.ts) quanto pela tela de
+ * perguntas — a mesma função gera o embedding tanto dos documentos quanto
+ * da pergunta do usuário na hora da busca.
  */
 
 // Se um dia quiserem trocar de modelo (ex: para o mais novo voyage-3.5,

@@ -31,7 +31,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 
 import { EXTENSOES_SUPORTADAS, extrairTexto } from "./ingest/extract-text";
 import { chunkText } from "./ingest/chunk-text";
-import { gerarEmbeddings } from "./ingest/voyage";
+import { gerarEmbeddings } from "../lib/rag/voyage";
 import { BUCKET_DOCUMENTOS, garantirBucket, getSupabaseAdmin } from "./ingest/supabase-admin";
 
 const TAMANHO_LOTE_INSERT_CHUNKS = 50;

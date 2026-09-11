@@ -8,5 +8,6 @@
  * As rotas de API (em app/api/**) devem importar apenas deste arquivo,
  * e não diretamente de retrieval.ts / generation.ts.
  */
+export * from "./config";
 export * from "./retrieval";
 export * from "./generation";
