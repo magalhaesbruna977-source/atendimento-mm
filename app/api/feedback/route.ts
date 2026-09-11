@@ -6,7 +6,11 @@
  *      (feedback + comentario_feedback) — só funciona se essa interação
  *      ainda não tinha recebido feedback (evita votar duas vezes);
  *   2. se o feedback foi negativo, cria automaticamente uma sugestão de
- *      correção (`suggestions`, status "pendente") vinculada à interação.
+ *      correção (`suggestions`, status "pendente") vinculada à interação
+ *      e ao documento mais relevante usado na resposta (o primeiro de
+ *      `chunks_usados`, que vem ordenado do mais parecido pro menos
+ *      parecido) — é esse documento que o painel de curadoria (Fase 6)
+ *      vai oferecer para editar.
  *
  * Não precisamos buscar o `agent_id` aqui como fazemos em /api/ask: as
  * políticas de RLS da Fase 2 já garantem que só é possível atualizar (ou
@@ -63,7 +67,7 @@ export async function POST(request: Request) {
     })
     .eq("id", interactionId)
     .is("feedback", null)
-    .select("id")
+    .select("id, chunks_usados")
     .maybeSingle();
 
   if (erroAtualizacao) {
@@ -83,8 +87,17 @@ export async function POST(request: Request) {
   }
 
   if (feedback === "negativo") {
+    // chunks_usados vem ordenado do chunk mais parecido pro menos parecido
+    // (ver lib/rag/retrieval.ts) — o document_id do primeiro é o candidato
+    // mais provável para o admin corrigir.
+    const chunksUsados = Array.isArray(interacaoAtualizada.chunks_usados)
+      ? (interacaoAtualizada.chunks_usados as { document_id?: string }[])
+      : [];
+    const documentIdRelacionado = chunksUsados[0]?.document_id ?? null;
+
     const { error: erroSugestao } = await supabase.from("suggestions").insert({
       interaction_id: interactionId,
+      document_id: documentIdRelacionado,
       tipo: "correcao",
       descricao: comentario || "Feedback negativo enviado sem comentário adicional.",
       status: "pendente",

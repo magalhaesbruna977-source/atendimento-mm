@@ -3,7 +3,7 @@
  *
  * Usa a "service role key" (acesso total, ignora RLS) porque este script
  * roda na sua máquina/terminal, nunca no navegador — é o mesmo tipo de
- * cliente de lib/supabase/server.ts, só que criado sob demanda (dentro de
+ * cliente de lib/supabase/admin.ts, só que criado sob demanda (dentro de
  * uma função) em vez de na primeira linha do arquivo. Isso é proposital:
  * as variáveis de ambiente só são carregadas dentro de scripts/ingest.ts,
  * então nada aqui pode ler process.env fora de uma função — senão o valor
@@ -11,7 +11,7 @@
  */
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
-export const BUCKET_DOCUMENTOS = "documentos-originais";
+export { BUCKET_DOCUMENTOS, garantirBucket } from "../../lib/supabase/storage";
 
 let clienteSingleton: SupabaseClient | null = null;
 
@@ -33,24 +33,4 @@ export function getSupabaseAdmin(): SupabaseClient {
   });
 
   return clienteSingleton;
-}
-
-/**
- * Garante que o bucket de Storage usado para guardar os arquivos originais
- * já existe — cria automaticamente na primeira execução.
- */
-export async function garantirBucket(supabase: SupabaseClient): Promise<void> {
-  const { data: bucketExistente } = await supabase.storage.getBucket(BUCKET_DOCUMENTOS);
-  if (bucketExistente) return;
-
-  const { error } = await supabase.storage.createBucket(BUCKET_DOCUMENTOS, {
-    public: false,
-  });
-
-  // Se outra execução criou o bucket entre o getBucket() e o createBucket()
-  // acima, o Supabase retorna um erro dizendo que já existe — nesse caso
-  // está tudo bem, seguimos em frente.
-  if (error && !/already exists/i.test(error.message)) {
-    throw error;
-  }
 }

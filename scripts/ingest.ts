@@ -29,10 +29,11 @@ import fs from "node:fs";
 import path from "node:path";
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { EXTENSOES_SUPORTADAS, extrairTexto } from "./ingest/extract-text";
-import { chunkText } from "./ingest/chunk-text";
+import { EXTENSOES_SUPORTADAS, extrairTexto } from "../lib/rag/extract-text";
+import { chunkText } from "../lib/rag/chunk-text";
 import { gerarEmbeddings } from "../lib/rag/voyage";
 import { BUCKET_DOCUMENTOS, garantirBucket, getSupabaseAdmin } from "./ingest/supabase-admin";
+import { slugify } from "../lib/utils/slugify";
 
 const TAMANHO_LOTE_INSERT_CHUNKS = 50;
 
@@ -246,17 +247,6 @@ async function garantirProduto(supabase: SupabaseClient, nomeProduto: string): P
 
   console.log(`  ✅ Produto novo criado no banco: "${nomeProduto}"`);
   return novoProduto.id;
-}
-
-/** Deixa um texto seguro para usar como nome de arquivo/pasta no Storage. */
-function slugify(texto: string): string {
-  return texto
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "") // remove acentos
-    .replace(/[^a-zA-Z0-9._-]+/g, "-")
-    .replace(/-+/g, "-")
-    .replace(/^-|-$/g, "")
-    .toLowerCase();
 }
 
 function imprimirResumoFinal(

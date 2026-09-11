@@ -12,6 +12,10 @@
  *   4. Entre um chunk e o próximo, uma fração (OVERLAP) das últimas palavras
  *      do chunk anterior é repetida no início do próximo, para não perder
  *      contexto na fronteira entre os dois.
+ *
+ * Mora em lib/rag/ (em vez de scripts/ingest/) porque tanto o script de
+ * ingestão (Fase 3) quanto o painel de curadoria (Fase 6, reprocessamento
+ * de documento editado/criado) precisam dividir texto em chunks.
  */
 
 const MIN_PALAVRAS = 500;

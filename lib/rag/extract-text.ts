@@ -4,6 +4,10 @@
  *   - .pdf  -> pdf-parse
  *   - .docx -> mammoth
  *   - .txt  -> leitura direta (já é texto puro)
+ *
+ * Mora em lib/rag/ (em vez de scripts/ingest/) porque tanto o script de
+ * ingestão (Fase 3) quanto o painel de curadoria (Fase 6, upload de novo
+ * documento) precisam extrair texto de arquivos.
  */
 import path from "node:path";
 import mammoth from "mammoth";
