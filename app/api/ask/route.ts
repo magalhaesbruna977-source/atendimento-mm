@@ -9,7 +9,8 @@
  *      resposta padrão de "não encontrado" sem chamar o Claude;
  *   4. senão, chama o Claude para redigir a resposta (lib/rag/generation);
  *   5. salva o registro completo em `interactions`;
- *   6. devolve { resposta, fontes } para a tela.
+ *   6. devolve { resposta, fontes, interactionId } para a tela — o
+ *      interactionId é usado depois por POST /api/feedback.
  */
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -111,19 +112,29 @@ export async function POST(request: Request) {
     similaridade: chunk.similaridade,
   }));
 
-  const { error: erroInteracao } = await supabase.from("interactions").insert({
-    agent_id: agente.id,
-    product_id: productId,
-    pergunta,
-    resposta,
-    chunks_usados: chunksUsados,
-  });
+  const { data: interacaoSalva, error: erroInteracao } = await supabase
+    .from("interactions")
+    .insert({
+      agent_id: agente.id,
+      product_id: productId,
+      pergunta,
+      resposta,
+      chunks_usados: chunksUsados,
+    })
+    .select("id")
+    .single();
 
   if (erroInteracao) {
     // Não falhamos a resposta pro atendente por causa disso — só registramos
-    // no log do servidor para investigar depois.
+    // no log do servidor para investigar depois. Sem interactionId, a tela
+    // simplesmente não mostra os botões de feedback para esta resposta.
     console.error("Falha ao salvar em interactions:", erroInteracao);
   }
 
-  return NextResponse.json({ resposta, fontes, abaixoDoLimiar });
+  return NextResponse.json({
+    resposta,
+    fontes,
+    abaixoDoLimiar,
+    interactionId: interacaoSalva?.id ?? null,
+  });
 }

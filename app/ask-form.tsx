@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import FeedbackButtons from "./feedback-buttons";
 
 interface Produto {
   id: string;
@@ -11,6 +12,7 @@ interface RespostaApi {
   resposta?: string;
   fontes?: string[];
   abaixoDoLimiar?: boolean;
+  interactionId?: string | null;
   erro?: string;
 }
 
@@ -112,6 +114,10 @@ export default function AskForm({ produtos }: { produtos: Produto[] }) {
                 ))}
               </ul>
             </details>
+          )}
+
+          {resultado.interactionId && (
+            <FeedbackButtons key={resultado.interactionId} interactionId={resultado.interactionId} />
           )}
         </div>
       )}
