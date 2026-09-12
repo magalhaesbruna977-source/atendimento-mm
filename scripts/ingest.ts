@@ -59,6 +59,31 @@ interface ArquivoEncontrado {
   caminhoRelativo: string;
 }
 
+/**
+ * Erros do Supabase (e de várias outras libs) não são instâncias de
+ * `Error` — são objetos simples com uma propriedade `message`. Sem essa
+ * checagem extra, `String(erro)` em um desses objetos vira o inútil
+ * "[object Object]" em vez do motivo real.
+ */
+function obterMensagemDeErro(erro: unknown): string {
+  if (erro instanceof Error) return erro.message;
+
+  if (
+    erro &&
+    typeof erro === "object" &&
+    "message" in erro &&
+    typeof (erro as { message: unknown }).message === "string"
+  ) {
+    return (erro as { message: string }).message;
+  }
+
+  try {
+    return JSON.stringify(erro);
+  } catch {
+    return String(erro);
+  }
+}
+
 async function main() {
   const pastaArgumento = process.argv[2];
 
@@ -128,7 +153,7 @@ async function main() {
           resumo,
         });
       } catch (erro) {
-        const mensagem = erro instanceof Error ? erro.message : String(erro);
+        const mensagem = obterMensagemDeErro(erro);
         arquivosComErro.push({ arquivo: path.join(nomeProduto, arquivo.caminhoRelativo), mensagem });
         console.error(`  ❌ Erro ao processar ${arquivo.caminhoRelativo}: ${mensagem}`);
       }
