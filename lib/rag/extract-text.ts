@@ -3,6 +3,8 @@
  * Cada formato de arquivo usa uma biblioteca diferente:
  *   - .pdf  -> pdf-parse
  *   - .docx -> mammoth
+ *   - .html -> html-to-text (remove as tags, deixa só o texto legível)
+ *   - .md   -> leitura direta (markdown já é texto puro)
  *   - .txt  -> leitura direta (já é texto puro)
  *
  * Mora em lib/rag/ (em vez de scripts/ingest/) porque tanto o script de
@@ -12,14 +14,18 @@
 import path from "node:path";
 import mammoth from "mammoth";
 import { PDFParse } from "pdf-parse";
+import { convert as htmlParaTexto } from "html-to-text";
 
-export type TipoArquivo = "pdf" | "docx" | "txt";
+export type TipoArquivo = "pdf" | "docx" | "html" | "md" | "txt";
 
 // Extensões de arquivo aceitas pelo script, e o "tipo_arquivo" correspondente
-// gravado na tabela documents.
+// gravado na tabela documents (a coluna já aceita todos estes valores).
 export const EXTENSOES_SUPORTADAS: Record<string, TipoArquivo> = {
   ".pdf": "pdf",
   ".docx": "docx",
+  ".html": "html",
+  ".htm": "html",
+  ".md": "md",
   ".txt": "txt",
 };
 
@@ -44,6 +50,14 @@ export async function extrairTexto(filePath: string, buffer: Buffer): Promise<st
       const resultado = await mammoth.extractRawText({ buffer });
       return resultado.value;
     }
+    case ".html":
+    case ".htm":
+      // wordwrap: false -> não quebra linha artificialmente a cada N
+      // caracteres; deixamos o parágrafo original inteiro numa linha só,
+      // o que ajuda o chunkText (lib/rag/chunk-text.ts) a reconhecer os
+      // parágrafos corretamente.
+      return htmlParaTexto(buffer.toString("utf-8"), { wordwrap: false });
+    case ".md":
     case ".txt":
       return buffer.toString("utf-8");
     default:

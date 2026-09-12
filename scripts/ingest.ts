@@ -5,8 +5,10 @@
  *   npm run ingest -- "CAMINHO_DA_PASTA"
  *
  * Espera uma pasta com uma subpasta por produto, cada uma contendo
- * arquivos .pdf, .docx e/ou .txt. Para cada arquivo novo (detectado pelo
- * hash do conteúdo — arquivos já processados são pulados):
+ * arquivos .pdf, .docx, .html, .md e/ou .txt — inclusive dentro de
+ * subpastas aninhadas (ex: "Produto/HTML das Aulas/Modulo 0/aula1.html").
+ * Para cada arquivo novo (detectado pelo hash do conteúdo — arquivos já
+ * processados são pulados):
  *   1. extrai o texto;
  *   2. envia o arquivo original para o Supabase Storage;
  *   3. cria um registro em `documents`;
@@ -14,9 +16,9 @@
  *   5. insere os chunks na tabela `chunks`.
  *
  * IMPORTANTE: antes de rodar isso pela primeira vez, rode no SQL Editor
- * do Supabase o script de ajuste de schema descrito na explicação desta
- * fase (adiciona a coluna documents.hash_conteudo e a trava de duplicidade
- * usada para a idempotência).
+ * do Supabase o script de ajuste de schema descrito na explicação da
+ * Fase 3 (adiciona a coluna documents.hash_conteudo e a trava de
+ * duplicidade usada para a idempotência).
  */
 import { loadEnvConfig } from "@next/env";
 
@@ -46,6 +48,15 @@ interface ResumoProduto {
 interface ErroArquivo {
   arquivo: string;
   mensagem: string;
+}
+
+interface ArquivoEncontrado {
+  caminhoAbsoluto: string;
+  // Caminho relativo à pasta do PRODUTO (não à pasta raiz) — ex:
+  // "HTML das Aulas/Modulo 0/CLFI-MOD0-AULA1.html". Usamos isso no título
+  // do documento e no nome salvo no Storage, para não confundir arquivos
+  // com nomes repetidos em módulos/subpastas diferentes.
+  caminhoRelativo: string;
 }
 
 async function main() {
@@ -91,17 +102,18 @@ async function main() {
     const resumo: ResumoProduto = { documentosNovos: 0, documentosPulados: 0, chunksNovos: 0 };
     resumoPorProduto.set(nomeProduto, resumo);
 
-    const arquivos = fs
-      .readdirSync(caminhoProduto, { withFileTypes: true })
-      .filter((item) => item.isFile());
+    const arquivos = listarArquivosRecursivo(caminhoProduto);
+
+    if (arquivos.length === 0) {
+      console.log(`  ⚠️  Pasta vazia — nenhum arquivo encontrado.`);
+    }
 
     for (const arquivo of arquivos) {
-      const caminhoArquivo = path.join(caminhoProduto, arquivo.name);
-      const extensao = path.extname(arquivo.name).toLowerCase();
+      const extensao = path.extname(arquivo.caminhoRelativo).toLowerCase();
 
       if (!EXTENSOES_SUPORTADAS[extensao]) {
-        arquivosIgnorados.push(caminhoArquivo);
-        console.log(`  ⏭️  Ignorado (formato não suportado): ${arquivo.name}`);
+        arquivosIgnorados.push(path.join(nomeProduto, arquivo.caminhoRelativo));
+        console.log(`  ⏭️  Ignorado (formato não suportado): ${arquivo.caminhoRelativo}`);
         continue;
       }
 
@@ -110,15 +122,15 @@ async function main() {
           supabase,
           productId,
           nomeProduto,
-          caminhoArquivo,
-          nomeArquivo: arquivo.name,
+          caminhoArquivo: arquivo.caminhoAbsoluto,
+          caminhoRelativo: arquivo.caminhoRelativo,
           extensao,
           resumo,
         });
       } catch (erro) {
         const mensagem = erro instanceof Error ? erro.message : String(erro);
-        arquivosComErro.push({ arquivo: caminhoArquivo, mensagem });
-        console.error(`  ❌ Erro ao processar ${arquivo.name}: ${mensagem}`);
+        arquivosComErro.push({ arquivo: path.join(nomeProduto, arquivo.caminhoRelativo), mensagem });
+        console.error(`  ❌ Erro ao processar ${arquivo.caminhoRelativo}: ${mensagem}`);
       }
     }
   }
@@ -126,16 +138,43 @@ async function main() {
   imprimirResumoFinal(resumoPorProduto, arquivosIgnorados, arquivosComErro);
 }
 
+/**
+ * Lista todos os arquivos dentro de uma pasta, entrando em subpastas
+ * aninhadas (ex: "Produto/HTML das Aulas/Modulo 0/arquivo.html").
+ */
+function listarArquivosRecursivo(
+  pastaDoProduto: string,
+  pastaAtual: string = pastaDoProduto,
+): ArquivoEncontrado[] {
+  const itens = fs.readdirSync(pastaAtual, { withFileTypes: true });
+  const arquivos: ArquivoEncontrado[] = [];
+
+  for (const item of itens) {
+    const caminhoAbsoluto = path.join(pastaAtual, item.name);
+
+    if (item.isDirectory()) {
+      arquivos.push(...listarArquivosRecursivo(pastaDoProduto, caminhoAbsoluto));
+    } else if (item.isFile()) {
+      arquivos.push({
+        caminhoAbsoluto,
+        caminhoRelativo: path.relative(pastaDoProduto, caminhoAbsoluto),
+      });
+    }
+  }
+
+  return arquivos;
+}
+
 async function processarArquivo(params: {
   supabase: SupabaseClient;
   productId: string;
   nomeProduto: string;
   caminhoArquivo: string;
-  nomeArquivo: string;
+  caminhoRelativo: string;
   extensao: string;
   resumo: ResumoProduto;
 }) {
-  const { supabase, productId, nomeProduto, caminhoArquivo, nomeArquivo, extensao, resumo } =
+  const { supabase, productId, nomeProduto, caminhoArquivo, caminhoRelativo, extensao, resumo } =
     params;
 
   const buffer = fs.readFileSync(caminhoArquivo);
@@ -154,11 +193,11 @@ async function processarArquivo(params: {
 
   if (existente) {
     resumo.documentosPulados++;
-    console.log(`  ⏭️  Já processado antes (conteúdo idêntico): ${nomeArquivo}`);
+    console.log(`  ⏭️  Já processado antes (conteúdo idêntico): ${caminhoRelativo}`);
     return;
   }
 
-  console.log(`  📄 Processando: ${nomeArquivo}`);
+  console.log(`  📄 Processando: ${caminhoRelativo}`);
 
   const texto = await extrairTexto(caminhoArquivo, buffer);
 
@@ -182,7 +221,7 @@ async function processarArquivo(params: {
   // com o hash marcado, mas sem nenhum chunk).
   const embeddings = await gerarEmbeddings(pedacos, "document");
 
-  const caminhoStorage = `${slugify(nomeProduto)}/${hash}-${slugify(nomeArquivo)}`;
+  const caminhoStorage = `${slugify(nomeProduto)}/${hash}-${slugify(caminhoRelativo)}`;
 
   const { error: erroUpload } = await supabase.storage
     .from(BUCKET_DOCUMENTOS)
@@ -191,7 +230,12 @@ async function processarArquivo(params: {
   if (erroUpload) throw erroUpload;
 
   const tipoArquivo = EXTENSOES_SUPORTADAS[extensao];
-  const titulo = path.basename(nomeArquivo, extensao);
+
+  // Título = caminho relativo sem a extensão, com "/" ou "\" virando " - ",
+  // para arquivos com nomes repetidos em módulos diferentes ficarem
+  // identificáveis (ex: "HTML das Aulas - Modulo 0 - CLFI-MOD0-AULA1").
+  const semExtensao = caminhoRelativo.slice(0, -extensao.length);
+  const titulo = semExtensao.split(path.sep).join(" - ");
 
   const { data: documento, error: erroInsercaoDoc } = await supabase
     .from("documents")

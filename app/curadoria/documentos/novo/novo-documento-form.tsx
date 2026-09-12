@@ -125,7 +125,7 @@ export default function NovoDocumentoForm({
             checked={modo === "arquivo"}
             onChange={() => setModo("arquivo")}
           />
-          Enviar arquivo (.pdf, .docx, .txt)
+          Enviar arquivo (.pdf, .docx, .html, .md, .txt)
         </label>
       </div>
 
@@ -140,7 +140,7 @@ export default function NovoDocumentoForm({
       ) : (
         <input
           type="file"
-          accept=".pdf,.docx,.txt"
+          accept=".pdf,.docx,.html,.htm,.md,.txt"
           onChange={(e) => setArquivo(e.target.files?.[0] ?? null)}
           className="text-sm text-zinc-700 dark:text-zinc-300"
         />
