@@ -52,68 +52,99 @@ export default function AskForm({ produtos }: { produtos: Produto[] }) {
   }
 
   return (
-    <div className="flex w-full max-w-2xl flex-col gap-6">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-        <label className="flex flex-col gap-1 text-sm text-zinc-700 dark:text-zinc-300">
-          Tópico (produto)
-          <select
-            value={productId}
-            onChange={(e) => setProductId(e.target.value)}
-            className="rounded border border-zinc-300 px-3 py-2 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+    <div className="flex w-full flex-col gap-6">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+        <div className="flex flex-col gap-2">
+          <span id="rotulo-topico" className="text-sm font-semibold text-mm-text">
+            Tópico (produto)
+          </span>
+          <div
+            role="radiogroup"
+            aria-labelledby="rotulo-topico"
+            className="flex flex-wrap gap-2 rounded-xl border border-mm-border bg-mm-surface p-2"
           >
-            <option value="">Todos</option>
-            {produtos.map((produto) => (
-              <option key={produto.id} value={produto.id}>
-                {produto.nome}
-              </option>
-            ))}
-          </select>
-        </label>
+            {[{ id: "", nome: "Todos" }, ...produtos].map((produto) => {
+              const ativo = productId === produto.id;
+              return (
+                <button
+                  key={produto.id || "todos"}
+                  type="button"
+                  role="radio"
+                  aria-checked={ativo}
+                  onClick={() => setProductId(produto.id)}
+                  className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold transition-colors ${
+                    ativo
+                      ? "border-mm-accent-soft bg-mm-accent-tint text-mm-accent-deep"
+                      : "border-transparent text-mm-text-muted hover:bg-mm-surface-2 hover:text-mm-text"
+                  }`}
+                >
+                  {produto.nome}
+                </button>
+              );
+            })}
+          </div>
+        </div>
 
-        <label className="flex flex-col gap-1 text-sm text-zinc-700 dark:text-zinc-300">
+        <label className="mm-label">
           Pergunta
           <textarea
             required
-            rows={4}
+            rows={5}
             value={pergunta}
             onChange={(e) => setPergunta(e.target.value)}
             placeholder="Digite a dúvida do cliente..."
-            className="resize-none rounded border border-zinc-300 px-3 py-2 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+            className="mm-input min-h-36 resize-y rounded-xl text-base leading-relaxed"
           />
         </label>
 
         <button
           type="submit"
           disabled={carregando}
-          className="self-start rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
+          className="mm-btn mm-btn-primary w-full sm:w-auto sm:self-start"
         >
-          {carregando ? "Buscando..." : "Enviar"}
+          {carregando ? "Buscando..." : "Enviar pergunta"}
         </button>
       </form>
 
       {erro && (
-        <p className="rounded border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-950 dark:text-red-300">
+        <p role="alert" className="mm-alert-error">
           {erro}
         </p>
       )}
 
       {resultado?.resposta && (
-        <div className="flex flex-col gap-3 rounded border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950">
-          <p className="whitespace-pre-wrap text-sm text-zinc-900 dark:text-zinc-50">
-            {resultado.resposta}
-          </p>
+        <div className="mm-card flex flex-col gap-5 p-5 sm:p-7">
+          {resultado.abaixoDoLimiar ? (
+            <div className="mm-callout-info flex flex-col gap-1">
+              <p className="text-sm font-bold text-mm-accent-deep">Não encontrado na base</p>
+              <p className="whitespace-pre-wrap text-[0.9375rem] leading-[1.65]">
+                {resultado.resposta}
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <p className="mm-eyebrow">Resposta</p>
+              <p className="whitespace-pre-wrap text-[0.9375rem] leading-[1.65] text-mm-text">
+                {resultado.resposta}
+              </p>
+            </div>
+          )}
 
           {!resultado.abaixoDoLimiar && resultado.fontes && resultado.fontes.length > 0 && (
-            <details className="text-sm text-zinc-600 dark:text-zinc-400">
-              <summary className="cursor-pointer font-medium">
-                Fontes usadas ({resultado.fontes.length})
-              </summary>
-              <ul className="mt-2 list-inside list-disc">
+            <div className="flex flex-col gap-2">
+              <p className="mm-eyebrow">Fontes usadas ({resultado.fontes.length})</p>
+              <ul className="flex flex-wrap gap-2">
                 {resultado.fontes.map((fonte) => (
-                  <li key={fonte}>{fonte}</li>
+                  <li
+                    key={fonte}
+                    title={fonte}
+                    className="mm-pill max-w-full truncate transition-colors hover:bg-mm-accent-tint hover:text-mm-accent-deep"
+                  >
+                    {fonte}
+                  </li>
                 ))}
               </ul>
-            </details>
+            </div>
           )}
 
           {resultado.interactionId && (

@@ -46,11 +46,11 @@ export default function ExcluirDocumentoButton({
         type="button"
         onClick={handleClick}
         disabled={enviando}
-        className="text-sm text-red-600 underline disabled:opacity-50 dark:text-red-400"
+        className="mm-btn mm-btn-danger mm-btn-sm"
       >
         {enviando ? "Excluindo..." : "Excluir"}
       </button>
-      {erro && <p className="text-xs text-red-600 dark:text-red-400">{erro}</p>}
+      {erro && <p className="text-xs font-medium text-mm-red">{erro}</p>}
     </div>
   );
 }

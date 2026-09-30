@@ -35,7 +35,7 @@ export default async function CuradoriaPage() {
     .order("criado_em", { ascending: false });
 
   if (error) {
-    return <p className="text-red-600 dark:text-red-400">Erro ao carregar sugestões: {error.message}</p>;
+    return <p className="mm-alert-error">Erro ao carregar sugestões: {error.message}</p>;
   }
 
   // O Supabase tipa relacionamentos aninhados de forma genérica — ajustamos
@@ -45,14 +45,17 @@ export default async function CuradoriaPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
-        Sugestões pendentes ({sugestoes.length})
-      </h1>
+      <div className="flex flex-col gap-1">
+        <h1 className="text-2xl font-extrabold tracking-tight text-mm-text">
+          Sugestões pendentes ({sugestoes.length})
+        </h1>
+        <p className="text-sm text-mm-text-muted">
+          Feedbacks negativos do time que podem virar correções na base de conhecimento.
+        </p>
+      </div>
 
       {sugestoes.length === 0 && (
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Nenhuma sugestão pendente no momento.
-        </p>
+        <div className="mm-callout-info text-sm">Nenhuma sugestão pendente no momento.</div>
       )}
 
       <div className="flex flex-col gap-4">
@@ -66,65 +69,57 @@ export default async function CuradoriaPage() {
           ];
 
           return (
-            <div
-              key={sugestao.id}
-              className="flex flex-col gap-3 rounded border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-950"
-            >
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                {new Date(sugestao.criado_em).toLocaleString("pt-BR")}
-              </p>
+            <div key={sugestao.id} className="mm-card flex flex-col gap-4 p-5 sm:p-6">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="mm-pill mm-pill-pendente">pendente</span>
+                <p className="text-xs text-mm-text-muted">
+                  {new Date(sugestao.criado_em).toLocaleString("pt-BR")}
+                </p>
+              </div>
 
               {sugestao.interacao ? (
                 <>
-                  <div>
-                    <p className="text-xs font-medium uppercase text-zinc-500 dark:text-zinc-400">
-                      Pergunta
-                    </p>
-                    <p className="text-sm text-zinc-900 dark:text-zinc-50">
+                  <div className="flex flex-col gap-1">
+                    <p className="mm-eyebrow">Pergunta</p>
+                    <p className="text-sm font-semibold text-mm-text">
                       {sugestao.interacao.pergunta}
                     </p>
                   </div>
 
-                  <div>
-                    <p className="text-xs font-medium uppercase text-zinc-500 dark:text-zinc-400">
-                      Resposta dada
-                    </p>
-                    <p className="whitespace-pre-wrap text-sm text-zinc-900 dark:text-zinc-50">
+                  <div className="flex flex-col gap-1">
+                    <p className="mm-eyebrow">Resposta dada</p>
+                    <p className="whitespace-pre-wrap rounded-lg border border-mm-border bg-mm-bg p-3 text-sm leading-[1.65] text-mm-text">
                       {sugestao.interacao.resposta}
                     </p>
                   </div>
 
                   {fontes.length > 0 && (
-                    <div>
-                      <p className="text-xs font-medium uppercase text-zinc-500 dark:text-zinc-400">
-                        Fontes usadas
-                      </p>
-                      <ul className="list-inside list-disc text-sm text-zinc-700 dark:text-zinc-300">
+                    <div className="flex flex-col gap-2">
+                      <p className="mm-eyebrow">Fontes usadas</p>
+                      <ul className="flex flex-wrap gap-2">
                         {fontes.map((titulo) => (
-                          <li key={titulo}>{titulo}</li>
+                          <li key={titulo} className="mm-pill">
+                            {titulo}
+                          </li>
                         ))}
                       </ul>
                     </div>
                   )}
                 </>
               ) : (
-                <p className="text-sm italic text-zinc-500 dark:text-zinc-400">
-                  Sem interação vinculada.
-                </p>
+                <p className="text-sm italic text-mm-text-muted">Sem interação vinculada.</p>
               )}
 
-              <div>
-                <p className="text-xs font-medium uppercase text-zinc-500 dark:text-zinc-400">
-                  Comentário do feedback
-                </p>
-                <p className="text-sm text-zinc-900 dark:text-zinc-50">{sugestao.descricao}</p>
+              <div className="flex flex-col gap-1">
+                <p className="mm-eyebrow">Comentário do feedback</p>
+                <p className="text-sm text-mm-text">{sugestao.descricao}</p>
               </div>
 
-              <div className="flex flex-wrap gap-2 pt-2">
+              <div className="flex flex-wrap items-start gap-2 border-t border-mm-border pt-4">
                 {sugestao.documento && (
                   <Link
                     href={`/curadoria/documentos/${sugestao.documento.id}?sugestaoId=${sugestao.id}`}
-                    className="rounded bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
+                    className="mm-btn mm-btn-primary mm-btn-sm"
                   >
                     Editar documento-fonte ({sugestao.documento.titulo})
                   </Link>
@@ -135,7 +130,7 @@ export default async function CuradoriaPage() {
                       ? `&produtoId=${sugestao.interacao.product_id}`
                       : ""
                   }`}
-                  className="rounded border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 dark:border-zinc-700 dark:text-zinc-300"
+                  className="mm-btn mm-btn-secondary mm-btn-sm"
                 >
                   Criar novo documento
                 </Link>

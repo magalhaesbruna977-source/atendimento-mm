@@ -47,32 +47,50 @@ export default function FeedbackButtons({ interactionId }: { interactionId: stri
     }
   }
 
-  if (feedbackEnviado) {
-    return <p className="text-sm text-green-700 dark:text-green-400">Obrigado pelo feedback!</p>;
-  }
+  // Depois de enviado, os botões continuam visíveis (desabilitados) mostrando
+  // qual feedback foi dado — só muda a aparência, não dá para reenviar.
+  const positivoAtivo = feedbackEnviado === "positivo";
+  const negativoAtivo = feedbackEnviado === "negativo" || mostrarComentario;
+  const bloqueado = enviando || feedbackEnviado !== null;
+
+  const classeBase =
+    "flex h-10 w-12 items-center justify-center rounded-lg border text-lg leading-none transition-colors disabled:cursor-not-allowed";
+  const classeNeutra =
+    "border-mm-border bg-mm-bg hover:enabled:bg-mm-surface-2 disabled:opacity-50";
 
   return (
-    <div className="flex flex-col gap-2 border-t border-zinc-200 pt-3 dark:border-zinc-800">
-      <div className="flex items-center gap-3">
-        <span className="text-sm text-zinc-600 dark:text-zinc-400">Essa resposta foi útil?</span>
-        <button
-          type="button"
-          onClick={() => enviarFeedback("positivo")}
-          disabled={enviando}
-          aria-label="Resposta útil"
-          className="text-xl leading-none disabled:opacity-50"
-        >
-          👍
-        </button>
-        <button
-          type="button"
-          onClick={() => setMostrarComentario(true)}
-          disabled={enviando}
-          aria-label="Resposta não útil"
-          className="text-xl leading-none disabled:opacity-50"
-        >
-          👎
-        </button>
+    <div className="flex flex-col gap-3 border-t border-mm-border pt-4">
+      <div className="flex flex-wrap items-center gap-3">
+        <span className="text-sm font-semibold text-mm-text-muted">Essa resposta foi útil?</span>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => enviarFeedback("positivo")}
+            disabled={bloqueado}
+            aria-label="Resposta útil"
+            aria-pressed={positivoAtivo}
+            className={`${classeBase} ${
+              positivoAtivo ? "border-mm-green bg-mm-green-tint text-mm-green" : classeNeutra
+            }`}
+          >
+            👍
+          </button>
+          <button
+            type="button"
+            onClick={() => setMostrarComentario(true)}
+            disabled={bloqueado}
+            aria-label="Resposta não útil"
+            aria-pressed={negativoAtivo}
+            className={`${classeBase} ${
+              negativoAtivo ? "border-mm-red bg-mm-red-tint text-mm-red" : classeNeutra
+            }`}
+          >
+            👎
+          </button>
+        </div>
+        {feedbackEnviado && (
+          <span className="text-sm font-semibold text-mm-green">Obrigado pelo feedback!</span>
+        )}
       </div>
 
       {mostrarComentario && (
@@ -82,14 +100,14 @@ export default function FeedbackButtons({ interactionId }: { interactionId: stri
             onChange={(e) => setComentario(e.target.value)}
             placeholder="O que estava errado ou faltando? (opcional)"
             rows={2}
-            className="resize-none rounded border border-zinc-300 px-3 py-2 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+            className="mm-input resize-none text-sm"
           />
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => enviarFeedback("negativo", comentario.trim() || undefined)}
               disabled={enviando}
-              className="rounded bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
+              className="mm-btn mm-btn-primary mm-btn-sm"
             >
               {enviando ? "Enviando..." : "Confirmar"}
             </button>
@@ -97,7 +115,7 @@ export default function FeedbackButtons({ interactionId }: { interactionId: stri
               type="button"
               onClick={() => setMostrarComentario(false)}
               disabled={enviando}
-              className="rounded border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300"
+              className="mm-btn mm-btn-secondary mm-btn-sm"
             >
               Cancelar
             </button>
@@ -105,7 +123,11 @@ export default function FeedbackButtons({ interactionId }: { interactionId: stri
         </div>
       )}
 
-      {erro && <p className="text-sm text-red-600 dark:text-red-400">{erro}</p>}
+      {erro && (
+        <p role="alert" className="mm-alert-error">
+          {erro}
+        </p>
+      )}
     </div>
   );
 }

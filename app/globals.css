@@ -1,26 +1,264 @@
 @import "tailwindcss";
 
+/*
+ * Design system Market Makers — tokens de cor e tipografia.
+ *
+ * Regra de marca: NUNCA usar amarelo/dourado puro (#facc15, #eab308, gold…).
+ * Para aviso ou estado "pendente", use --mm-amber / --mm-amber-tint.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+  --mm-bg: #ffffff;
+  --mm-surface: #f4f8fe;
+  --mm-surface-2: #e9f1fc;
+  --mm-border: #d7e4f5;
+  --mm-text: #20242b;
+  --mm-text-muted: #57667a;
+  --mm-accent: #248bfb;
+  --mm-accent-deep: #2c5c95;
+  --mm-accent-soft: #8bc4fc;
+  --mm-accent-tint: #e1effc;
+  --mm-green: #1c8a52;
+  --mm-green-tint: #e7f6ee;
+  --mm-amber: #a9720c;
+  --mm-amber-tint: #fbf1de;
+  --mm-red: #c8452f;
+  --mm-red-tint: #fbebe7;
+  --mm-shadow: 0 1px 2px rgba(32, 36, 43, 0.06), 0 8px 24px -12px rgba(32, 36, 43, 0.18);
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  color-scheme: light dark;
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+  :root:not([data-theme="light"]) {
+    --mm-bg: #181c22;
+    --mm-surface: #1f242c;
+    --mm-surface-2: #242b35;
+    --mm-border: #323b48;
+    --mm-text: #e9eef5;
+    --mm-text-muted: #9fb0c3;
+    --mm-accent: #5aa8fc;
+    --mm-accent-deep: #8bc4fc;
+    --mm-accent-soft: #3d78c2;
+    --mm-accent-tint: #20304a;
+    --mm-green: #4cc383;
+    --mm-green-tint: #122a1f;
+    --mm-amber: #e0af52;
+    --mm-amber-tint: #332510;
+    --mm-red: #ef7a63;
+    --mm-red-tint: #3a1f1a;
   }
 }
 
+/*
+ * Registro das mesmas cores no Tailwind (v4 configura o tema aqui no CSS,
+ * não em tailwind.config.ts). Gera classes como bg-mm-surface,
+ * text-mm-text-muted, border-mm-border, shadow-mm etc.
+ */
+@theme inline {
+  --color-mm-bg: var(--mm-bg);
+  --color-mm-surface: var(--mm-surface);
+  --color-mm-surface-2: var(--mm-surface-2);
+  --color-mm-border: var(--mm-border);
+  --color-mm-text: var(--mm-text);
+  --color-mm-text-muted: var(--mm-text-muted);
+  --color-mm-accent: var(--mm-accent);
+  --color-mm-accent-deep: var(--mm-accent-deep);
+  --color-mm-accent-soft: var(--mm-accent-soft);
+  --color-mm-accent-tint: var(--mm-accent-tint);
+  --color-mm-green: var(--mm-green);
+  --color-mm-green-tint: var(--mm-green-tint);
+  --color-mm-amber: var(--mm-amber);
+  --color-mm-amber-tint: var(--mm-amber-tint);
+  --color-mm-red: var(--mm-red);
+  --color-mm-red-tint: var(--mm-red-tint);
+  --shadow-mm: var(--mm-shadow);
+  --font-sans: var(--font-montserrat), system-ui, sans-serif;
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--mm-bg);
+  color: var(--mm-text);
+  font-family: var(--font-montserrat), system-ui, sans-serif;
+  font-weight: 400;
+}
+
+/*
+ * Componentes reutilizáveis — usados em todas as telas para manter o mesmo
+ * padrão de botão, input, card, pill e callout.
+ */
+@layer components {
+  .mm-card {
+    background: var(--mm-surface);
+    border: 1px solid var(--mm-border);
+    border-radius: 14px;
+    box-shadow: var(--mm-shadow);
+  }
+
+  .mm-label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--mm-text);
+  }
+
+  .mm-input {
+    width: 100%;
+    background: var(--mm-bg);
+    color: var(--mm-text);
+    border: 1px solid var(--mm-border);
+    border-radius: 9px;
+    padding: 10px 12px;
+    font-size: 0.9375rem;
+    font-weight: 400;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .mm-input::placeholder {
+    color: var(--mm-text-muted);
+  }
+  .mm-input:focus {
+    outline: none;
+    border-color: var(--mm-accent);
+    box-shadow: 0 0 0 3px var(--mm-accent-tint);
+  }
+
+  .mm-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: 9px;
+    padding: 10px 18px;
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.2;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .mm-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .mm-btn:focus-visible {
+    outline: 2px solid var(--mm-accent);
+    outline-offset: 2px;
+  }
+  .mm-btn-sm {
+    padding: 7px 12px;
+    font-size: 0.8125rem;
+  }
+
+  .mm-btn-primary {
+    background: var(--mm-accent);
+    color: #ffffff;
+  }
+  .mm-btn-primary:hover:not(:disabled) {
+    background: var(--mm-accent-deep);
+  }
+
+  .mm-btn-success {
+    background: var(--mm-green);
+    color: #ffffff;
+  }
+  .mm-btn-success:hover:not(:disabled) {
+    filter: brightness(0.92);
+  }
+
+  .mm-btn-secondary {
+    background: var(--mm-bg);
+    color: var(--mm-text);
+    border-color: var(--mm-border);
+  }
+  .mm-btn-secondary:hover:not(:disabled) {
+    background: var(--mm-surface-2);
+  }
+
+  .mm-btn-danger {
+    background: transparent;
+    color: var(--mm-red);
+    border-color: var(--mm-red);
+  }
+  .mm-btn-danger:hover:not(:disabled) {
+    background: var(--mm-red-tint);
+  }
+
+  .mm-btn-ghost {
+    background: transparent;
+    color: var(--mm-text-muted);
+  }
+  .mm-btn-ghost:hover:not(:disabled) {
+    background: var(--mm-surface);
+    color: var(--mm-text);
+  }
+
+  .mm-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 999px;
+    padding: 3px 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: var(--mm-surface-2);
+    color: var(--mm-text-muted);
+  }
+  .mm-pill-pendente {
+    background: var(--mm-amber-tint);
+    color: var(--mm-amber);
+  }
+  .mm-pill-aprovado {
+    background: var(--mm-green-tint);
+    color: var(--mm-green);
+  }
+  .mm-pill-rejeitado {
+    background: var(--mm-red-tint);
+    color: var(--mm-red);
+  }
+
+  .mm-callout-info {
+    background: var(--mm-accent-tint);
+    border: 1px solid var(--mm-accent-soft);
+    border-left-width: 4px;
+    border-radius: 10px;
+    padding: 14px 16px;
+    color: var(--mm-text);
+  }
+
+  .mm-alert-error {
+    background: var(--mm-red-tint);
+    color: var(--mm-red);
+    border-radius: 9px;
+    padding: 10px 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .mm-alert-success {
+    background: var(--mm-green-tint);
+    color: var(--mm-green);
+    border-radius: 9px;
+    padding: 10px 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .mm-eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--mm-text-muted);
+  }
+
+  .mm-link {
+    color: var(--mm-accent-deep);
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  .mm-link:hover {
+    color: var(--mm-accent);
+  }
 }

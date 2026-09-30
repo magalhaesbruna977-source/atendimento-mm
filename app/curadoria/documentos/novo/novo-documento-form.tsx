@@ -80,24 +80,24 @@ export default function NovoDocumentoForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-      <label className="flex flex-col gap-1 text-sm text-zinc-700 dark:text-zinc-300">
+    <form onSubmit={handleSubmit} className="mm-card flex flex-col gap-5 p-5 sm:p-7">
+      <label className="mm-label">
         Título
         <input
           required
           value={titulo}
           onChange={(e) => setTitulo(e.target.value)}
-          className="rounded border border-zinc-300 px-3 py-2 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+          className="mm-input"
         />
       </label>
 
-      <label className="flex flex-col gap-1 text-sm text-zinc-700 dark:text-zinc-300">
+      <label className="mm-label">
         Produto
         <select
           required
           value={productId}
           onChange={(e) => setProductId(e.target.value)}
-          className="rounded border border-zinc-300 px-3 py-2 text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+          className="mm-input"
         >
           <option value="">Selecione...</option>
           {produtos.map((produto) => (
@@ -108,22 +108,24 @@ export default function NovoDocumentoForm({
         </select>
       </label>
 
-      <div className="flex gap-4 text-sm text-zinc-700 dark:text-zinc-300">
-        <label className="flex items-center gap-2">
+      <div className="flex flex-col gap-3 text-sm text-mm-text sm:flex-row sm:gap-6">
+        <label className="flex cursor-pointer items-center gap-2">
           <input
             type="radio"
             name="modo"
             checked={modo === "texto"}
             onChange={() => setModo("texto")}
+            className="accent-mm-accent"
           />
           Colar texto
         </label>
-        <label className="flex items-center gap-2">
+        <label className="flex cursor-pointer items-center gap-2">
           <input
             type="radio"
             name="modo"
             checked={modo === "arquivo"}
             onChange={() => setModo("arquivo")}
+            className="accent-mm-accent"
           />
           Enviar arquivo (.pdf, .docx, .html, .md, .txt)
         </label>
@@ -135,14 +137,14 @@ export default function NovoDocumentoForm({
           onChange={(e) => setConteudo(e.target.value)}
           rows={14}
           placeholder="Cole aqui o texto do documento..."
-          className="resize-y rounded border border-zinc-300 px-3 py-2 font-mono text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+          className="mm-input resize-y rounded-xl font-mono text-sm leading-relaxed"
         />
       ) : (
         <input
           type="file"
           accept=".pdf,.docx,.html,.htm,.md,.txt"
           onChange={(e) => setArquivo(e.target.files?.[0] ?? null)}
-          className="text-sm text-zinc-700 dark:text-zinc-300"
+          className="mm-input text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-mm-accent-tint file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-mm-accent-deep"
         />
       )}
 
@@ -150,13 +152,17 @@ export default function NovoDocumentoForm({
         <button
           type="submit"
           disabled={enviando}
-          className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
+          className="mm-btn mm-btn-primary"
         >
           {enviando ? "Salvando..." : "Criar documento"}
         </button>
       </div>
 
-      {erro && <p className="text-sm text-red-600 dark:text-red-400">{erro}</p>}
+      {erro && (
+        <p role="alert" className="mm-alert-error">
+          {erro}
+        </p>
+      )}
     </form>
   );
 }

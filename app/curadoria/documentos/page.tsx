@@ -20,7 +20,7 @@ export default async function DocumentosPage() {
     .order("criado_em", { ascending: false });
 
   if (error) {
-    return <p className="text-red-600 dark:text-red-400">Erro ao carregar documentos: {error.message}</p>;
+    return <p className="mm-alert-error">Erro ao carregar documentos: {error.message}</p>;
   }
 
   const documentos = (data ?? []) as unknown as DocumentoComProduto[];
@@ -37,44 +37,44 @@ export default async function DocumentosPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-extrabold tracking-tight text-mm-text">
           Documentos ({documentos.length})
         </h1>
         <Link
           href="/curadoria/documentos/novo"
-          className="rounded bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white dark:bg-zinc-50 dark:text-zinc-900"
+          className="mm-btn mm-btn-primary mm-btn-sm"
         >
           + Novo documento
         </Link>
       </div>
 
       {documentos.length === 0 && (
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">Nenhum documento cadastrado ainda.</p>
+        <div className="mm-callout-info text-sm">Nenhum documento cadastrado ainda.</div>
       )}
 
       <div className="flex flex-col gap-6">
         {[...porProduto.entries()].map(([productId, grupo]) => (
           <div key={productId} className="flex flex-col gap-2">
-            <h2 className="text-sm font-semibold uppercase text-zinc-500 dark:text-zinc-400">
+            <h2 className="mm-eyebrow">
               {grupo.nomeProduto}
             </h2>
-            <div className="flex flex-col divide-y divide-zinc-200 rounded border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="mm-card flex flex-col divide-y divide-mm-border overflow-hidden">
               {grupo.documentos.map((documento) => (
-                <div key={documento.id} className="flex items-center justify-between px-4 py-3">
+                <div key={documento.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5">
                   <div>
-                    <p className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                    <p className="text-sm font-semibold text-mm-text">
                       {documento.titulo}
                     </p>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    <p className="text-xs text-mm-text-muted">
                       {documento.tipo_arquivo} ·{" "}
                       {new Date(documento.criado_em).toLocaleDateString("pt-BR")}
                     </p>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-start gap-2">
                     <Link
                       href={`/curadoria/documentos/${documento.id}`}
-                      className="text-sm text-zinc-700 underline dark:text-zinc-300"
+                      className="mm-btn mm-btn-secondary mm-btn-sm"
                     >
                       Editar
                     </Link>

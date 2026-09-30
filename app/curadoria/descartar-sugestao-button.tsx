@@ -40,11 +40,11 @@ export default function DescartarSugestaoButton({ sugestaoId }: { sugestaoId: st
         type="button"
         onClick={handleClick}
         disabled={enviando}
-        className="rounded border border-zinc-300 px-3 py-1.5 text-sm text-zinc-700 disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-300"
+        className="mm-btn mm-btn-danger mm-btn-sm"
       >
         {enviando ? "Descartando..." : "Descartar sem alterar"}
       </button>
-      {erro && <p className="text-sm text-red-600 dark:text-red-400">{erro}</p>}
+      {erro && <p className="text-sm font-medium text-mm-red">{erro}</p>}
     </div>
   );
 }

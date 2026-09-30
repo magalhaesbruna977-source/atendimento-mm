@@ -1,7 +1,6 @@
-import Link from "next/link";
 import { getAgenteLogado } from "@/lib/auth/admin";
 import AskForm from "./ask-form";
-import LogoutButton from "./logout-button";
+import SiteHeader from "./site-header";
 
 export default async function Home() {
   const { supabase, agente } = await getAgenteLogado();
@@ -9,25 +8,25 @@ export default async function Home() {
   const { data: produtos } = await supabase.from("products").select("id, nome").order("nome");
 
   return (
-    <div className="flex min-h-screen flex-col items-center bg-zinc-50 px-4 py-12 font-sans dark:bg-black">
-      <div className="flex w-full max-w-2xl items-center justify-between pb-6">
-        <h1 className="text-2xl font-semibold text-zinc-900 dark:text-zinc-50">
-          Atendimento MM
-        </h1>
-        <div className="flex items-center gap-4">
-          {agente?.is_admin && (
-            <Link
-              href="/curadoria"
-              className="text-sm text-zinc-600 underline dark:text-zinc-400"
-            >
-              Curadoria
-            </Link>
-          )}
-          <LogoutButton />
-        </div>
-      </div>
+    <div className="flex min-h-screen flex-col bg-mm-bg">
+      <SiteHeader isAdmin={Boolean(agente?.is_admin)} />
 
-      <AskForm produtos={produtos ?? []} />
+      <main className="flex flex-1 flex-col items-center px-4 py-8 sm:px-6 sm:py-12">
+        <div className="flex w-full max-w-3xl flex-col gap-8">
+          <div className="flex flex-col gap-2">
+            <p className="mm-eyebrow">Assistente de atendimento</p>
+            <h1 className="text-3xl font-extrabold tracking-tight text-mm-text">
+              Fazer uma pergunta
+            </h1>
+            <p className="text-sm text-mm-text-muted">
+              Escolha o tópico, digite a dúvida do cliente e receba uma resposta baseada na nossa
+              base de conhecimento.
+            </p>
+          </div>
+
+          <AskForm produtos={produtos ?? []} />
+        </div>
+      </main>
     </div>
   );
 }

@@ -49,34 +49,38 @@ export default function EditarDocumentoForm({
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="mm-card flex flex-col gap-4 p-5 sm:p-7">
       <textarea
         value={conteudo}
         onChange={(e) => setConteudo(e.target.value)}
         rows={20}
-        className="w-full resize-y rounded border border-zinc-300 px-3 py-2 font-mono text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
+        className="mm-input resize-y rounded-xl font-mono text-sm leading-relaxed"
       />
 
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-3">
         <button
           type="button"
           onClick={handleSalvar}
           disabled={salvando}
-          className="rounded bg-zinc-900 px-4 py-2 text-sm font-medium text-white disabled:opacity-50 dark:bg-zinc-50 dark:text-zinc-900"
+          className="mm-btn mm-btn-primary"
         >
           {salvando ? "Salvando e reprocessando..." : "Salvar e reprocessar"}
         </button>
         <button
           type="button"
           onClick={() => router.back()}
-          className="text-sm text-zinc-600 underline dark:text-zinc-400"
+          className="mm-btn mm-btn-secondary"
         >
           Voltar
         </button>
       </div>
 
-      {mensagem && <p className="text-sm text-green-700 dark:text-green-400">{mensagem}</p>}
-      {erro && <p className="text-sm text-red-600 dark:text-red-400">{erro}</p>}
+      {mensagem && <p className="mm-alert-success">{mensagem}</p>}
+      {erro && (
+        <p role="alert" className="mm-alert-error">
+          {erro}
+        </p>
+      )}
     </div>
   );
 }

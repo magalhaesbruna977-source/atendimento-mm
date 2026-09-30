@@ -34,12 +34,12 @@ export default async function EditarDocumentoPage({
   const documento = data as unknown as DocumentoDetalhado;
 
   return (
-    <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col gap-1">
+        <h1 className="text-2xl font-extrabold tracking-tight text-mm-text">
           {documento.titulo}
         </h1>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+        <p className="text-sm text-mm-text-muted">
           {documento.produto?.nome ?? "Sem produto"} · {documento.tipo_arquivo}
         </p>
       </div>

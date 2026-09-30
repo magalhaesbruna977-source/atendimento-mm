@@ -12,8 +12,8 @@ export default async function NovoDocumentoPage({
   const { data: produtos } = await supabase.from("products").select("id, nome").order("nome");
 
   return (
-    <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-50">Novo documento</h1>
+    <div className="flex flex-col gap-6">
+      <h1 className="text-2xl font-extrabold tracking-tight text-mm-text">Novo documento</h1>
       <NovoDocumentoForm produtos={produtos ?? []} produtoIdInicial={produtoId} sugestaoId={sugestaoId} />
     </div>
   );
