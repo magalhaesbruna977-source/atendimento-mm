@@ -46,6 +46,7 @@
     --mm-amber-tint: #332510;
     --mm-red: #ef7a63;
     --mm-red-tint: #3a1f1a;
+    --mm-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.5);
   }
 }
 
@@ -73,6 +74,7 @@
   --color-mm-red-tint: var(--mm-red-tint);
   --shadow-mm: var(--mm-shadow);
   --font-sans: var(--font-montserrat), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
 }
 
 body {
@@ -250,6 +252,51 @@ body {
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--mm-text-muted);
+  }
+
+  .mm-callout-rule {
+    background: var(--mm-surface-2);
+    border: 1px solid var(--mm-border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    color: var(--mm-text);
+  }
+
+  /* Tabela padrão (Central de Conhecimento): 1ª coluna em destaque. */
+  .mm-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84375rem;
+  }
+  .mm-table td,
+  .mm-table th {
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--mm-border);
+    vertical-align: top;
+    line-height: 1.55;
+    text-align: left;
+  }
+  .mm-table th {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--mm-text-muted);
+    font-weight: 700;
+    border-bottom-width: 2px;
+  }
+  .mm-table td:first-child {
+    font-weight: 700;
+    color: var(--mm-accent-deep);
+    padding-right: 16px;
+  }
+  @media (min-width: 640px) {
+    .mm-table td:first-child {
+      white-space: nowrap;
+    }
+  }
+  .mm-table-plain td:first-child {
+    font-weight: 400;
+    color: var(--mm-text);
   }
 
   .mm-link {
