@@ -1,21 +1,12 @@
 import Link from "next/link";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getAgenteLogado } from "@/lib/auth/admin";
 import AskForm from "./ask-form";
 import LogoutButton from "./logout-button";
 
 export default async function Home() {
-  const supabase = await createSupabaseServerClient();
+  const { supabase, agente } = await getAgenteLogado();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  const [{ data: produtos }, { data: agente }] = await Promise.all([
-    supabase.from("products").select("id, nome").order("nome"),
-    user
-      ? supabase.from("agents").select("is_admin").eq("user_id", user.id).maybeSingle()
-      : Promise.resolve({ data: null }),
-  ]);
+  const { data: produtos } = await supabase.from("products").select("id, nome").order("nome");
 
   return (
     <div className="flex min-h-screen flex-col items-center bg-zinc-50 px-4 py-12 font-sans dark:bg-black">

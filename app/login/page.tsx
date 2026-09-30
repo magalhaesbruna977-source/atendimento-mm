@@ -14,6 +14,12 @@ export default function LoginPage() {
   async function handleSubmit(evento: FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     setErro(null);
+
+    if (!email.toLowerCase().endsWith("@mmakers.com.br")) {
+      setErro("Use um e-mail @mmakers.com.br.");
+      return;
+    }
+
     setCarregando(true);
 
     const { error } = await supabaseBrowserClient.auth.signInWithPassword({

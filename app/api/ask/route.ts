@@ -13,7 +13,7 @@
  *      interactionId é usado depois por POST /api/feedback.
  */
 import { NextResponse } from "next/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getAgenteLogado } from "@/lib/auth/admin";
 import {
   buscarChunksRelevantes,
   gerarResposta,
@@ -42,37 +42,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ erro: "Informe uma pergunta." }, { status: 400 });
   }
 
-  const supabase = await createSupabaseServerClient();
-
   // Checagem de autenticação AQUI TAMBÉM (e não só no proxy.ts) — rotas de
   // API merecem sua própria verificação, veja a explicação desta fase.
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return NextResponse.json({ erro: "Não autenticado." }, { status: 401 });
-  }
-
-  const { data: agente, error: erroAgente } = await supabase
-    .from("agents")
-    .select("id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-
-  if (erroAgente) {
-    console.error("Erro ao buscar o agente:", erroAgente);
-    return NextResponse.json({ erro: "Erro ao identificar o agente." }, { status: 500 });
-  }
+  // getAgenteLogado() também cria o registro em `agents` automaticamente
+  // se for o primeiro login deste usuário (veja lib/auth/admin.ts).
+  const { supabase, agente } = await getAgenteLogado();
 
   if (!agente) {
     return NextResponse.json(
-      {
-        erro:
-          "Seu usuário ainda não tem um perfil de agente cadastrado. " +
-          "Peça para um administrador te cadastrar na tabela agents.",
-      },
-      { status: 403 },
+      { erro: "Não autenticado ou não foi possível carregar seu perfil de agente." },
+      { status: 401 },
     );
   }
 
